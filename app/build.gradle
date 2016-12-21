@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        applicationId "se.lightside.zrajmcalexport"
+        minSdkVersion 21
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+
+        jackOptions {
+            enabled true
+        }
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        incremental false
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    compile 'io.reactivex:rxjava:1.2.4'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'com.jakewharton.timber:timber:4.4.0'
+    compile 'com.jakewharton.rxbinding:rxbinding:1.0.0'
+    compile 'com.squareup.sqlbrite:sqlbrite:1.1.1'
+    compile 'com.tbruyelle.rxpermissions:rxpermissions:0.9.1@aar'
+    compile 'net.sf.biweekly:biweekly:0.6.0'
+    compile 'org.apache.commons:commons-csv:+'
+//    compile 'com.f2prateek.rx.preferences2:rx-preferences:2.0.0-RC1'
+
+    compile 'com.google.dagger:dagger:2.8'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.8'
+
+
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
+    testCompile 'junit:junit:4.12'
+}
