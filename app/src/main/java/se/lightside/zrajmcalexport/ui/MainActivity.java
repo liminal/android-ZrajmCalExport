@@ -6,22 +6,16 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.support.v4.provider.DocumentFile;
 import android.support.v4.util.Pair;
 import android.support.v7.app.AppCompatActivity;
+import android.util.SparseArray;
 import android.widget.Button;
 
 import com.jakewharton.rxbinding.view.RxView;
 import com.tbruyelle.rxpermissions.RxPermissions;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -38,6 +32,7 @@ import se.lightside.zrajmcalexport.dagger2.ApplicationModule;
 import se.lightside.zrajmcalexport.dagger2.DaggerAppComponent;
 import se.lightside.zrajmcalexport.db.Event;
 import se.lightside.zrajmcalexport.db.EventService;
+import se.lightside.zrajmcalexport.model.CalendarModel;
 import timber.log.Timber;
 
 public class MainActivity extends AppCompatActivity {
@@ -78,13 +73,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         mPrefSubscription = listenForOutputDir()
-            .subscribe(uri -> {
-                if (Uri.EMPTY.equals(uri)) {
-                    mBtnListCalendars.setEnabled(false);
-                } else {
-                    mBtnListCalendars.setEnabled(true);
-                }
-            });
+            .subscribe(uri -> mBtnListCalendars.setEnabled(!Uri.EMPTY.equals(uri)));
     }
 
     @Override protected void onPause() {
@@ -132,29 +121,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void onEventList(final List<Pair<Integer, String>> calendars, List<Event> entities) {
-        Map<Integer, List<Event>> eventMap = new HashMap<>();
+    private void onEventList(final List<CalendarModel> calendars, List<Event> entities) {
+
+        SparseArray<CalendarModel> calSA = new SparseArray<>();
+        for (CalendarModel calendar : calendars) {
+            calSA.put(calendar.getId(), calendar);
+        }
 
         for (Event entity : entities) {
-            List<Event> events = eventMap.get(entity.calendar_id);
-            if (events == null) {
-                events = new ArrayList<>();
+            final CalendarModel cal = calSA.get(entity.calendar_id);
+            if (cal == null) {
+                Timber.v("No calendar for entry: %s", entity);
+            } else {
+                cal.getEventList().add(entity);
             }
-            events.add(entity);
-            eventMap.put(entity.calendar_id, events);
         }
 
         final Uri outputDir = Uri.parse(mSharedPreferences.getString(PREF_OUTPUT_DIR, ""));
 
         DocumentFile tree = DocumentFile.fromTreeUri(this, outputDir);
 
-        for (Pair<Integer, String> calendar : calendars) {
-            final List<Event> events = eventMap.get(calendar.first);
-            if (events == null) {
-                Timber.v("calendar empty: %s", calendar.second);
-            } else {
-                mCalendarWriter.writeCalendar(tree, calendar, events);
-            }
+        for (CalendarModel calendar : calendars) {
+                mCalendarWriter.writeCalendar(tree, calendar);
         }
     }
 

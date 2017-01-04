@@ -3,7 +3,6 @@ package se.lightside.zrajmcalexport.db;
 import android.content.ContentResolver;
 import android.content.EntityIterator;
 import android.database.Cursor;
-import android.support.v4.util.Pair;
 
 import com.squareup.sqlbrite.BriteContentResolver;
 
@@ -14,6 +13,7 @@ import javax.inject.Inject;
 
 import rx.Observable;
 import rx.exceptions.Exceptions;
+import se.lightside.zrajmcalexport.model.CalendarModel;
 
 import static android.provider.CalendarContract.Calendars;
 import static android.provider.CalendarContract.Events;
@@ -54,10 +54,12 @@ public class EventService {
         });
     }
 
-    public Observable<List<Pair<Integer, String>>> listCalendars() {
+    public Observable<List<CalendarModel>> listCalendars() {
         return mBriteContentResolver
             .createQuery(Calendars.CONTENT_URI, null, null, null, null, false)
-            .mapToList(c -> Pair.create(c.getInt(c.getColumnIndex(Calendars._ID)), c.getString(c.getColumnIndex(Calendars.NAME))));
+            .mapToList(c -> new CalendarModel(
+                c.getInt(c.getColumnIndex(Calendars._ID)),
+                c.getString(c.getColumnIndex(Calendars.NAME))));
 
     }
 
